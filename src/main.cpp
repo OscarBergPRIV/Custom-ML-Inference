@@ -1,6 +1,7 @@
 #include <iostream>
 #include "layers.h"
 #include <random>
+#include "compression.h"
 
 class Network {
 public:
@@ -61,27 +62,11 @@ public:
 
 int main() {
 
-    std::vector<float> thetas = {0.1f, 0.3f, 0.5f};
-    std::vector<float> scale = {1.0f, 0.8f, 0.6f};
-    float b = 0.2f;
-    Network network(2, thetas, scale, b);
+    std::vector<float> thetas = {0.0f};
+    std::vector<float> scale = {10.0f};
+    float b = -5.0f;
+    Network network(1, thetas, scale, b);
     network.conv_layers[0].print_kernel();
-    /*
-    std::vector<std::vector<std::vector<float>>> input = {
-        {
-            {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
-            {5.0, 6.0, 7.0, 8.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
-            {9.0, 10.0, 11.0, 12.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
-            {13.0, 14.0, 15.0, 16.0, 5.0, -60.0, 7.0, 8.0, 9.0, 10.0},
-            {5.0, 6.0, 7.0, -80.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
-            {9.0, 10.0, 11.0, 12.0, 5.0, -60.0, 70.0, 8.0, 9.0, 10.0},
-            {1.0, 10.0, 5.0, 4.0, -56.0, 100.0, 2.0, 3.0, 4.0, 5.0},
-            {-9.0, 10.0, 15.0, 12.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
-            {-1.0, 10.0, 50.0, 4.0, 56.0, 1.0, 2.0, 3.0, 4.0, 5.0},
-            {1.0, 2.0, 30.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0}
-        }
-    };*/
-
 
     const int channels = 3;
     const int height = 640;
@@ -113,20 +98,18 @@ int main() {
     }
     printf("%f\n", input[0][0][0]);
     printf("%f\n", input[20][10][15]);
-
-    /*
     
-    std::cout << "Output:\n";
-    for (const auto& channel : input) {
-        for (const auto& row : channel) {
-            printf("channel values: ");
-            for (const auto& elem : row) {
-                std::cout << elem << " ";
-            }
-            std::cout << "\n";
-        }
-    }*/
+    std::vector<float> distinct_values = {-5.0f, 5.0f};
 
+    std::unordered_map<float, uint8_t> value_to_binary = mapValuesToBinary(distinct_values);
 
+    std::vector<uint8_t> packed_tensor = packTensor1D(input, value_to_binary);
+
+    std::vector<uint8_t> compressed_tensor = compressData(packed_tensor);
+
+    double ratio_zip = compressionRatio(packed_tensor, compressed_tensor);
+
+    std::cout << ratio_zip << "\n";
+    
     return 0;
 }
